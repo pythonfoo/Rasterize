@@ -1,4 +1,64 @@
 #! /usr/bin/env python
+"""
+Drawing stuff
+or: the power of linear interpolation
+or: all the edge cases
+
+In this module we'll learn how lines, polygons and filled polygons are drawn on the screen. We will do so from a very
+high/abstract standpoint. We're not interested in making things fast, only in making them correct and understandable.
+
+As such, we will not be using the [Bresenham algorithm](https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm),
+even though I encourage you to read and understand that, too.
+
+The end goal of this file/lesson is to draw a filled triangle on the screen.
+Read the source code for an in-depth explanation. There will be exercises in there, marked with "EX:". I encourage you
+to try them out and play with them, until you find an answer.
+"""
+
+# See below for Part 0: pixels
+# it's a boring part, so we'll move it to the end and simply not look at it.
+
+########################################################################################################################
+# Part 1: lines
+"""
+The first thing we need to achieve to do so is to get single pixels drawn on the screen. Once we have that, we can
+compose these pixels to lines. Lines can be composed into triangles and triangles, finally, can be filled.
+All of this will be achieved through the power of linear interpolation.
+
+Linear interpolation is the process of going from one value to another value at linear speed. For example, let's say
+you are at x = 0 and want to go to x = 5, with constant "speed", and you want to do so in one time unit. The question
+then becomes: given a time `t`, between 0 and 1, at which point `x(t)` will you be? In our specific case, it should be
+clear that `x(t) = 5 * t`.
+So let's solve the general case: given a starting position x_0 and a stopping position x_1, what is x(t) for t in
+[0, 1]? The answer is a simple linear interpolation:
+  x(t) = x_0 + t * (x_1 - x_0)
+As a python function, it could look like this:
+"""
+def lerp(x_0, x_1, t):
+    return x_0 + t * (x_1 - x_0)
+"""
+That's nice, but not enough. We want to go from x_0 to x_1 not in one time unit, but between the times y_0 and y_1. To
+get there we'll need to interpolate between y_0 and y_1 as well. Let's also assume that all numbers involved are
+integers and we want to go integer steps. Then a function that gave us a list of all "steps" could look like this:
+"""
+def lerp(x_0, x_1, y_0, y_1):
+    """Go from (x0, y0) to (x1, y1) in integer steps ofer y0 -> y1."""
+    # we are going to take this many steps:
+    steps = y_1 - y_0
+    # and we need to divide the target difference (x_1 - x_0) in this many steps:
+    slope = (x_1 - x_0) / steps
+    # this is a floating point number, and that's ok. We'll need to take care to round our emitted values!
+
+    # x_i and y_i will be our running variables
+    # We'll start at x_i = x_0 and y_i = y_0
+    x_i = x_0
+    for y_i in range(y_0, y_1 + 1):
+        x_i += slope                    # this will now also be a float, and we still cannot round. EX: Why not?
+        yield (int(x_i), y_i)           # this is our step result. EX: Why do we not need to convert y_i to int?
+
+# TODO: continue
+
+
 
 from time import sleep
 
@@ -13,6 +73,7 @@ SCREENSIZE_X, SCREENSIZE_Y = SCREENSIZE
 
 
 def show_screen(screen, screen_buffer):
+    """Just a convenience function for showing a numpy buffer on the screen."""
 
     surfarray.blit_array(screen, screen_buffer)
     pygame.display.flip()
